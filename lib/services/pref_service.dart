@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/profile_data.dart';
+
 class PrefService {
   PrefService._(this._prefs);
   final SharedPreferences _prefs;
@@ -7,6 +9,7 @@ class PrefService {
   // Semua key dikumpulkan di sini.
   static const _kOpenCount = 'open_count';
   static const _kDarkMode = 'is_dark_mode';
+  static const _kProfile = 'profile_data';
 
   /// Dipanggil sekali saat aplikasi mulai.
   static Future<PrefService> init() async {
@@ -23,4 +26,21 @@ class PrefService {
   bool get isDarkMode => _prefs.getBool(_kDarkMode) ?? false;
 
   Future<void> setDarkMode(bool value) => _prefs.setBool(_kDarkMode, value);
+
+  // ---------- Profil ----------
+  ProfileData get profile {
+    try {
+      final raw = _prefs.getString(_kProfile);
+      return raw == null ? ProfileData.defaults : ProfileData.fromJson(raw);
+    } on FormatException {
+      return ProfileData.defaults;
+    } on TypeError {
+      return ProfileData.defaults;
+    }
+  }
+
+  Future<void> saveProfile(ProfileData profile) =>
+      _prefs.setString(_kProfile, profile.toJson());
+
+  Future<void> clearProfile() => _prefs.remove(_kProfile);
 }
