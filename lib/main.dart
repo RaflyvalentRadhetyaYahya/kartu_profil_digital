@@ -10,18 +10,52 @@ Future<void> main() async {
   runApp(MyApp(prefs: prefs));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key, required this.prefs});
 
   final PrefService prefs;
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final ValueNotifier<bool> _isDark = ValueNotifier(
+    widget.prefs.isDarkMode,
+  );
+
+  Future<void> _changeTheme(bool value) async {
+    _isDark.value = value;
+    await widget.prefs.setDarkMode(value);
+  }
+
+  @override
+  void dispose() {
+    _isDark.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Kartu Profil Digital',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorSchemeSeed: Colors.indigo),
-      home: ProfilePage(prefs: prefs),
+    return ValueListenableBuilder<bool>(
+      valueListenable: _isDark,
+      builder: (context, isDark, _) {
+        return MaterialApp(
+          title: 'Kartu Profil Digital',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(colorSchemeSeed: Colors.indigo),
+          darkTheme: ThemeData(
+            colorSchemeSeed: Colors.indigo,
+            brightness: Brightness.dark,
+          ),
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+          home: ProfilePage(
+            prefs: widget.prefs,
+            isDark: isDark,
+            onThemeChanged: _changeTheme,
+          ),
+        );
+      },
     );
   }
 }
