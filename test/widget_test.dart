@@ -46,6 +46,20 @@ void main() {
     expect(prefs.profile.toMap(), ProfileData.defaults.toMap());
   });
 
+  test('debug keys returns stored preference keys', () async {
+    SharedPreferences.setMockInitialValues({
+      'open_count': 1,
+      'is_dark_mode': true,
+      'profile_data': ProfileData.defaults.toJson(),
+    });
+    final prefs = await PrefService.init();
+
+    expect(
+      prefs.debugKeys,
+      containsAll({'open_count', 'is_dark_mode', 'profile_data'}),
+    );
+  });
+
   test('invalid stored profile data falls back to defaults', () async {
     SharedPreferences.setMockInitialValues({'profile_data': '{invalid'});
     final prefs = await PrefService.init();
@@ -134,5 +148,29 @@ void main() {
         bio: 'Updated bio',
       ).toMap(),
     );
+  });
+
+  testWidgets('resets the profile to defaults', (WidgetTester tester) async {
+    const savedProfile = ProfileData(
+      name: 'Saved Name',
+      title: 'Saved Role',
+      bio: 'Saved bio',
+    );
+    SharedPreferences.setMockInitialValues({
+      'profile_data': savedProfile.toJson(),
+    });
+    final prefs = await PrefService.init();
+    await tester.pumpWidget(MyApp(prefs: prefs));
+
+    expect(find.text('Saved Name'), findsOneWidget);
+
+    await tester.tap(find.text('Reset Profil'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ProfileData.defaults.name), findsOneWidget);
+    expect(find.text(ProfileData.defaults.title), findsOneWidget);
+    expect(find.text(ProfileData.defaults.bio), findsOneWidget);
+    expect(find.text('Profil dikembalikan ke bawaan'), findsOneWidget);
+    expect(prefs.profile.toMap(), ProfileData.defaults.toMap());
   });
 }

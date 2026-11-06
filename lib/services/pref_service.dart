@@ -11,6 +11,8 @@ class PrefService {
   static const _kDarkMode = 'is_dark_mode';
   static const _kProfile = 'profile_data';
 
+  Set<String> get debugKeys => _prefs.getKeys();
+
   /// Dipanggil sekali saat aplikasi mulai.
   static Future<PrefService> init() async {
     final prefs = await SharedPreferences.getInstance();
